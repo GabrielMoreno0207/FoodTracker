@@ -55,7 +55,7 @@ class _FoodTrackerHomePageState extends State<FoodTrackerHomePage> {
   Future<void> _loadCaloriesByDay() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, int> caloriesByDay = {};
-    Set<String>? days = prefs.getStringList('days')?.toSet();
+    List<String>? days = prefs.getStringList('days');
     if (days != null) {
       for (String day in days) {
         int? calories = prefs.getInt(day);
@@ -96,8 +96,10 @@ class _FoodTrackerHomePageState extends State<FoodTrackerHomePage> {
     if (days == null) {
       days = [];
     }
-    days.add(day);
-    await prefs.setStringList('days', days);
+    if (!days.contains(day)) {
+      days.add(day);
+      await prefs.setStringList('days', days);
+    }
     await _loadCaloriesByDay();
     _clearFoods();
   }
