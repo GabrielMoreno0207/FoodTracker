@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 void main() {
   runApp(FoodTrackerApp());
@@ -148,6 +149,13 @@ class _FoodTrackerHomePageState extends State<FoodTrackerHomePage> {
     );
   }
 
+  void _viewStatistics() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => StatisticsPage(_caloriesByDay)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,6 +165,10 @@ class _FoodTrackerHomePageState extends State<FoodTrackerHomePage> {
           IconButton(
             icon: Icon(Icons.history),
             onPressed: _viewHistory,
+          ),
+          IconButton(
+            icon: Icon(Icons.bar_chart),
+            onPressed: _viewStatistics,
           ),
         ],
       ),
@@ -252,4 +264,53 @@ class _FoodTrackerHomePageState extends State<FoodTrackerHomePage> {
       },
     );
   }
+}
+
+class StatisticsPage extends StatelessWidget {
+  final Map<String, int> _caloriesByDay;
+
+  StatisticsPage(this._caloriesByDay);
+
+  @override
+  Widget build(BuildContext context) {
+    List<charts.Series<CaloriesData, String>> series = [
+      charts.Series(
+        id: 'Calories',
+        data: _caloriesByDay.entries
+            .map((entry) => CaloriesData(entry.key, entry.value))
+            .toList(),
+        domainFn: (CaloriesData data, _) => data.day,
+        measureFn: (CaloriesData data, _) => data.calories,
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+      )
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Estatísticas de Consumo'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Calorias Consumidas por Dia',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            Expanded(
+              child: charts.BarChart(series, animate: true),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CaloriesData {
+  final String day;
+  final int calories;
+
+  CaloriesData(this.day, this.calories);
 }
